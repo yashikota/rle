@@ -5,7 +5,7 @@
 ## Name
 
 enc - Run-length compression of input pgm and ppm images  
-dec - Decompress run-length compressed data  
+dec - Decompression run-length compressed data  
 
 ## Synopsis
 
