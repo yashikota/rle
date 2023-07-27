@@ -38,7 +38,7 @@ def compression_ratio_percent(file1, file2):
 
 
 def diff(file1, file2):
-    return abs(os.path.getsize(file1) - os.path.getsize(file2))
+    return os.system(f"diff -Bw {file1} {file2}")
 
 
 def main():
@@ -48,10 +48,10 @@ def main():
 
     for file in get_benchmark_files():
         print(get_base_filename(file), end="\t")
-        print(f"{get_input_file_size(file):>10,} -> ", end="")
+        print(f"{get_input_file_size(file):>10,} bytes -> ", end="")
         encode(file)
         print(
-            f"{get_input_file_size(f'{get_base_filename_without_extension(file)}.rle'):>10,}",
+            f"{get_input_file_size(f'{get_base_filename_without_extension(file)}.rle'):>10,} bytes",
             end=", ",
         )
         decode(file)
