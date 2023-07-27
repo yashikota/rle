@@ -112,6 +112,7 @@ int main(int argc, char *argv[]) {
         } else {
             if (mode == LITERAL) {
                 pushList(list, preChar);
+                count++;
             } else if (mode == FILL) {
                 DecimalToHex(wfp, count);
                 mode = LITERAL;
