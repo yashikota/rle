@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "file.h"
+
+#define LITERAL 0
+#define FILL 1
 #define BYTE sizeof(unsigned char)
 #define WORD 1
 
@@ -23,6 +27,21 @@ void changeOutputFileName(char *outputFileName, int type) {
     } else if (type == 3) {
         strcat(outputFileName, ".ppm");
     }
+}
+
+int readByte(FILE *fp) {
+    unsigned char byte;
+    fread(&byte, BYTE, WORD, fp);
+    if (feof(fp)) return -1;
+    if (byte == 0x00) {
+        unsigned short int multiByte;
+        unsigned char firstByte, secondByte;
+        fread(&firstByte, BYTE, WORD, fp);
+        fread(&secondByte, BYTE, WORD, fp);
+        multiByte = (firstByte << 8) | secondByte;
+        return (int)multiByte;
+    }
+    return (int)byte;
 }
 
 int main(int argc, char *argv[]) {
@@ -54,17 +73,13 @@ int main(int argc, char *argv[]) {
         outputFileName = strdup(outputFileName);
     }
 
-    rfp = fopen(argv[optind], "rb");
-    if (rfp == NULL) {
-        perror("Read file open error");
-        return EXIT_FAILURE;
-    }
+    rfp = openReadBinaryFile(argv[optind]);
 
     unsigned char type;
     fread(&type, BYTE, WORD, rfp);
-    type = (int) type;
+    type = (int)type;
 
-    switch(type) {
+    switch (type) {
         case 2:
             changeOutputFileName(outputFileName, type);
             break;
@@ -76,24 +91,38 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
     }
 
-    wfp = fopen(outputFileName, "w");
-    if (wfp == NULL) {
-        perror("Write file open error");
-        return EXIT_FAILURE;
+    wfp = openWriteTextFile(outputFileName);
+
+    int width, height, brightness;
+    width = readByte(rfp);
+    height = readByte(rfp);
+    brightness = readByte(rfp);
+    fprintf(wfp, "P%d\n%d\n%d\n%d\n", type, width, height, brightness);
+
+    // data
+    int mode = LITERAL;
+    int count;
+    unsigned char ch;
+
+    while (1) {
+        count = readByte(rfp);
+        if (count == -1) break;
+        if (mode == LITERAL) {
+            for (int j = 0; j < count; j++) {
+                fread(&ch, BYTE, WORD, rfp);
+                fprintf(wfp, "%d\n", ch);
+            }
+            mode = FILL;
+        } else if (mode == FILL) {
+            for (int j = 0; j < count; j++) {
+                fprintf(wfp, "%d\n", ch);
+            }
+            mode = LITERAL;
+        }
     }
-
-    unsigned char width, height, brightness;
-    fread(&width, BYTE, WORD, rfp);
-    fread(&height, BYTE, WORD, rfp);
-    fread(&brightness, BYTE, WORD, rfp);
-    width = (int) width;
-    height = (int) height;
-    brightness = (int) brightness;
-
-    fprintf(wfp, "P%d\n", type);
-    fprintf(wfp, "%d\n", brightness);
 
     fclose(wfp);
     fclose(rfp);
+
     return 0;
 }

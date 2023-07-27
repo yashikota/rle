@@ -3,15 +3,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "file.h"
+#include "list.h"
+
+#define ONE_BYTE 256
+#define LITERAL 0
+#define FILL 1
+
 void usage(char *argv[]) {
     fprintf(stderr, "Usage: %s [OPTION] FILE\n", argv[0]);
-    fprintf(stderr, "Option:\n");
+    fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -o <FILE>  output file\n");
     exit(EXIT_FAILURE);
 }
 
-unsigned char decimalToHex(int decimal, int padding) {
-    return (unsigned char)(decimal + padding);
+unsigned char OneByteDecimalToHex(int decimal) {
+    return (unsigned char)decimal;
+}
+
+unsigned char TwoByteDecimalToHex(int decimal) {
+    return (unsigned char)(decimal / ONE_BYTE);
+}
+
+void DecimalToHex(FILE *fp, int decimal) {
+    if (decimal < ONE_BYTE) {
+        fprintf(fp, "%c", OneByteDecimalToHex(decimal));
+    } else {
+        fprintf(fp, "%c", 0x00);
+        fprintf(fp, "%c", TwoByteDecimalToHex(decimal));
+        fprintf(fp, "%c", OneByteDecimalToHex(decimal % ONE_BYTE));
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -49,46 +70,70 @@ int main(int argc, char *argv[]) {
         strcat(outputFileName, ".rle");
     }
 
-    rfp = fopen(argv[optind], "r");
-    if (rfp == NULL) {
-        perror("Read file open error");
-        return EXIT_FAILURE;
-    }
-
-    wfp = fopen(outputFileName, "w");
-    if (wfp == NULL) {
-        perror("Write file open error");
-        return EXIT_FAILURE;
-    }
+    rfp = openReadTextFile(argv[optind]);
+    wfp = openWriteBinaryFile(outputFileName);
 
     // skip P
     fgetc(rfp);
 
-    // file descriptor
+    // properties
     int type, width, height, brightness;
     fscanf(rfp, "%d %d %d %d", &type, &width, &height, &brightness);
-    fprintf(wfp, "%c", decimalToHex(type, 0x00));
-    fprintf(wfp, "%c", decimalToHex(brightness, 0x00));
 
-    printf("%d, %d, %d, %d\n", type, width, height, brightness);
+    DecimalToHex(wfp, type);
+    DecimalToHex(wfp, width);
+    DecimalToHex(wfp, height);
+    DecimalToHex(wfp, brightness);
 
+    // data
+    int mode = LITERAL;
     int preChar, curChar;
     int count = 1;
+    int *data;
+    List *list = createList(1);
 
     fscanf(rfp, "%d", &preChar);
-
     while (fscanf(rfp, "%d", &curChar) != EOF) {
         if (preChar == curChar) {
-            count++;
+            if (mode == LITERAL) {
+                pushList(list, preChar);
+                DecimalToHex(wfp, getListLength(list));
+                data = getAllListValue(list);
+                for (int i = 0; i < list->length; i++) {
+                    DecimalToHex(wfp, data[i]);
+                }
+                cleanList(list);
+                list = createList(1);
+                count = 1;
+                mode = FILL;
+            } else if (mode == FILL) {
+                count++;
+            }
         } else {
-            printf("%d, %d\n", count, preChar);
-            count = 1;
+            if (mode == LITERAL) {
+                pushList(list, preChar);
+            } else if (mode == FILL) {
+                DecimalToHex(wfp, count);
+                mode = LITERAL;
+                count = 1;
+            }
         }
         preChar = curChar;
     }
-    printf("%d, %d\n", count, preChar);
+    if (mode == LITERAL) {
+        pushList(list, preChar);
+        DecimalToHex(wfp, count);
+        data = getAllListValue(list);
+        for (int i = 0; i < list->length; i++) {
+            DecimalToHex(wfp, data[i]);
+        }
+    } else if (mode == FILL) {
+        DecimalToHex(wfp, count);
+    }
 
+    cleanList(list);
     fclose(rfp);
     fclose(wfp);
+
     return 0;
 }
