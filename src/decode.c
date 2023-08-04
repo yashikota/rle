@@ -4,18 +4,12 @@
 #include <string.h>
 
 #include "file.h"
+#include "usage.h"
 
 #define LITERAL 0
 #define FILL 1
 #define BYTE sizeof(unsigned char)
 #define WORD 1
-
-void usage(char *argv[]) {
-    fprintf(stderr, "Usage: %s [OPTION] FILE\n", argv[0]);
-    fprintf(stderr, "Option:\n");
-    fprintf(stderr, "  -o <FILE>  output file\n");
-    exit(EXIT_FAILURE);
-}
 
 void changeOutputFileName(char *outputFileName, int type) {
     char *p = strrchr(outputFileName, '.');
@@ -32,7 +26,7 @@ void changeOutputFileName(char *outputFileName, int type) {
 int readByte(FILE *fp) {
     unsigned char byte;
     fread(&byte, BYTE, WORD, fp);
-    if (feof(fp)) return -1;
+    if (feof(fp)) return EOF;
     if (byte == 0x00) {
         unsigned short int multiByte;
         unsigned char firstByte, secondByte;
@@ -106,7 +100,7 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         count = readByte(rfp);
-        if (count == -1) break;
+        if (count == EOF) break;
         if (mode == LITERAL) {
             for (int j = 0; j < count; j++) {
                 fread(&ch, BYTE, WORD, rfp);

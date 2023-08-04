@@ -21,9 +21,9 @@ dec - Decompression run-length compressed data
 
 ## Option
 
--o, --outfile  
-        Specify the name of the output file.  
-        If not specified, the output will be the name of the input file.  
+-o  
+    Specify the name of the output file.  
+    If not specified, the output will be the name of the input file.  
 
 ## Usage
 

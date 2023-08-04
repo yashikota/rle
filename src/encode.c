@@ -5,17 +5,11 @@
 
 #include "file.h"
 #include "list.h"
+#include "usage.h"
 
 #define ONE_BYTE 256
 #define LITERAL 0
 #define FILL 1
-
-void usage(char *argv[]) {
-    fprintf(stderr, "Usage: %s [OPTION] FILE\n", argv[0]);
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -o <FILE>  output file\n");
-    exit(EXIT_FAILURE);
-}
 
 unsigned char OneByteDecimalToHex(int decimal) {
     return (unsigned char)decimal;
