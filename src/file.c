@@ -1,85 +1,31 @@
 #include "file.h"
 
-#include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <string.h>
 
-long getFileSize(const char *fileName) {
-    FILE *fp;
-    long fileSize;
-    struct stat stbuf;
-    int fd;
-
-    fd = open(fileName, O_RDONLY);
-    if (fd == -1) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-    }
-
-    fp = fdopen(fd, "rb");
+FILE *fileOpen(const char *fileName, const char *mode) {
+    FILE *fp = fopen(fileName, mode);
     if (fp == NULL) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-    }
-
-    if (fstat(fd, &stbuf) == -1) {
-        fprintf(stderr, "cant get file state : %s\n", fileName);
-    }
-
-    fileSize = stbuf.st_size;
-
-    if (fclose(fp) != 0) {
-        fprintf(stderr, "cant close file : %s\n", fileName);
-    }
-
-    return fileSize;
-}
-
-FILE *openReadTextFile(const char *fileName) {
-    FILE *fp;
-
-    fp = fopen(fileName, "r");
-    if (fp == NULL) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-        return NULL;
+        perror(fileName);
+        exit(EXIT_FAILURE);
     }
 
     return fp;
 }
 
-FILE *openReadBinaryFile(const char *fileName) {
-    FILE *fp;
-
-    fp = fopen(fileName, "rb");
-    if (fp == NULL) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-        return NULL;
+char *outputFileName(char *fileName, const char *extention) {
+    char *p = strrchr(fileName, '/');
+    if (p != NULL) {
+        fileName = p + 1;
     }
+    fileName = strdup(fileName);
 
-    return fp;
-}
-
-FILE *openWriteTextFile(const char *fileName) {
-    FILE *fp;
-
-    fp = fopen(fileName, "w");
-    if (fp == NULL) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-        return NULL;
+    p = strrchr(fileName, '.');
+    if (p != NULL) {
+        *p = '\0';
     }
+    strcat(fileName, ".");
+    strcat(fileName, extention);
 
-    return fp;
-}
-
-FILE *openWriteBinaryFile(const char *fileName) {
-    FILE *fp;
-
-    fp = fopen(fileName, "wb");
-    if (fp == NULL) {
-        fprintf(stderr, "cant open file : %s\n", fileName);
-        return NULL;
-    }
-
-    return fp;
+    return fileName;
 }
