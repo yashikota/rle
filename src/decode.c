@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "file.h"
+#include "option.h"
 #include "usage.h"
 
 #define LITERAL 0
@@ -40,34 +41,9 @@ int readByte(FILE *fp) {
 
 int main(int argc, char *argv[]) {
     FILE *rfp, *wfp;
-    int opt;
-    char *outputFileName = NULL;
+    char *outputFileName = parseOption(argc, argv);
 
-    while ((opt = getopt(argc, argv, "o:")) != -1) {
-        switch (opt) {
-            case 'o':
-                outputFileName = optarg;
-                break;
-            default:
-                usage(argv);
-        }
-    }
-
-    if (argc - optind != 1) {
-        usage(argv);
-    }
-
-    if (outputFileName == NULL) {
-        char *p = strrchr(argv[optind], '/');
-        if (p == NULL) {
-            outputFileName = argv[optind];
-        } else {
-            outputFileName = p + 1;
-        }
-        outputFileName = strdup(outputFileName);
-    }
-
-    rfp = openReadBinaryFile(argv[optind]);
+    rfp = fileOpen(argv[optind], "rb");
 
     unsigned char type;
     fread(&type, BYTE, WORD, rfp);
@@ -85,7 +61,7 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
     }
 
-    wfp = openWriteTextFile(outputFileName);
+    wfp = fileOpen(outputFileName, "w");
 
     int width, height, brightness;
     width = readByte(rfp);

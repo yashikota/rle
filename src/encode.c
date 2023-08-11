@@ -1,4 +1,3 @@
-#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +5,7 @@
 #include "file.h"
 #include "list.h"
 #include "usage.h"
+#include "option.h"
 
 #define ONE_BYTE 256
 #define LITERAL 0
@@ -31,41 +31,11 @@ void DecimalToHex(FILE *fp, int decimal) {
 
 int main(int argc, char *argv[]) {
     FILE *rfp, *wfp;
-    int opt;
-    char *outputFileName = NULL;
 
-    while ((opt = getopt(argc, argv, "o:")) != -1) {
-        switch (opt) {
-            case 'o':
-                outputFileName = optarg;
-                break;
-            default:
-                usage(argv);
-        }
-    }
+    char *outputFileName = parseOption(argc, argv);
 
-    if (argc - optind != 1) {
-        usage(argv);
-    }
-
-    if (outputFileName == NULL) {
-        char *p = strrchr(argv[optind], '/');
-        if (p == NULL) {
-            outputFileName = argv[optind];
-        } else {
-            outputFileName = p + 1;
-        }
-        outputFileName = strdup(outputFileName);
-
-        p = strrchr(outputFileName, '.');
-        if (p != NULL) {
-            *p = '\0';
-        }
-        strcat(outputFileName, ".rle");
-    }
-
-    rfp = openReadTextFile(argv[optind]);
-    wfp = openWriteBinaryFile(outputFileName);
+    rfp = fileOpen(argv[getOptind()], "r");
+    wfp = fileOpen(outputFileName, "wb");
 
     // skip P
     fgetc(rfp);
