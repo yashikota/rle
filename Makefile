@@ -3,8 +3,8 @@ CFLAGS = -Wall -Wextra
 
 SRCDIR = src
 
-ENC = $(SRCDIR)/encode.c $(SRCDIR)/file.c $(SRCDIR)/list.c $(SRCDIR)/usage.c
-DEC = $(SRCDIR)/decode.c $(SRCDIR)/file.c $(SRCDIR)/usage.c
+ENC = $(SRCDIR)/encode.c $(SRCDIR)/file.c $(SRCDIR)/list.c $(SRCDIR)/usage.c $(SRCDIR)/option.c
+DEC = $(SRCDIR)/decode.c $(SRCDIR)/file.c $(SRCDIR)/usage.c $(SRCDIR)/option.c
 
 TARGET = enc dec
 
