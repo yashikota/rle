@@ -4,7 +4,7 @@
 
 ## Name
 
-enc - 入力されたpgm、ppm画像をランレングス圧縮
+enc - 入力されたpgm、ppm画像をランレングス圧縮  
 dec - ランレングス圧縮されたデータを展開
 
 ## Synopsis
