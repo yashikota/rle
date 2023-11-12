@@ -48,6 +48,8 @@ def main():
 
     for file in get_benchmark_files():
         print(get_base_filename(file), end="\t")
+        if (len(get_base_filename(file)) < 16):
+            print("\t", end="")
         print(f"{get_input_file_size(file):>10,} bytes -> ", end="")
         encode(file)
         print(
