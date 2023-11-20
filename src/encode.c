@@ -11,21 +11,21 @@
 #define LITERAL 0
 #define FILL 1
 
-unsigned char OneByteDecimalToHex(int decimal) {
+unsigned char oneByteDecimalToHex(int decimal) {
     return (unsigned char)decimal;
 }
 
-unsigned char TwoByteDecimalToHex(int decimal) {
+unsigned char twoByteDecimalToHex(int decimal) {
     return (unsigned char)(decimal / ONE_BYTE);
 }
 
-void DecimalToHex(FILE *fp, int decimal) {
+void decimalToHex(FILE *fp, int decimal) {
     if (decimal < ONE_BYTE) {
-        fprintf(fp, "%c", OneByteDecimalToHex(decimal));
+        fprintf(fp, "%c", oneByteDecimalToHex(decimal));
     } else {
         fprintf(fp, "%c", 0x00);
-        fprintf(fp, "%c", TwoByteDecimalToHex(decimal));
-        fprintf(fp, "%c", OneByteDecimalToHex(decimal % ONE_BYTE));
+        fprintf(fp, "%c", twoByteDecimalToHex(decimal));
+        fprintf(fp, "%c", oneByteDecimalToHex(decimal % ONE_BYTE));
     }
 }
 
@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
     int type, width, height, brightness;
     fscanf(rfp, "%d %d %d %d", &type, &width, &height, &brightness);
 
-    DecimalToHex(wfp, type);
-    DecimalToHex(wfp, width);
-    DecimalToHex(wfp, height);
-    DecimalToHex(wfp, brightness);
+    decimalToHex(wfp, type);
+    decimalToHex(wfp, width);
+    decimalToHex(wfp, height);
+    decimalToHex(wfp, brightness);
 
     // data
     int mode = LITERAL;
@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
         if (preChar == curChar) {
             if (mode == LITERAL) {
                 pushList(list, preChar);
-                DecimalToHex(wfp, getListLength(list));
+                decimalToHex(wfp, getListLength(list));
                 data = getAllListValue(list);
                 for (int i = 0; i < list->length; i++) {
-                    DecimalToHex(wfp, data[i]);
+                    decimalToHex(wfp, data[i]);
                 }
                 cleanList(list);
                 list = createList(1);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
                 pushList(list, preChar);
                 count++;
             } else if (mode == FILL) {
-                DecimalToHex(wfp, count);
+                decimalToHex(wfp, count);
                 mode = LITERAL;
                 count = 1;
             }
@@ -87,13 +87,13 @@ int main(int argc, char *argv[]) {
     }
     if (mode == LITERAL) {
         pushList(list, preChar);
-        DecimalToHex(wfp, count);
+        decimalToHex(wfp, count);
         data = getAllListValue(list);
         for (int i = 0; i < list->length; i++) {
-            DecimalToHex(wfp, data[i]);
+            decimalToHex(wfp, data[i]);
         }
     } else if (mode == FILL) {
-        DecimalToHex(wfp, count);
+        decimalToHex(wfp, count);
     }
 
     cleanList(list);
